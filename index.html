@@ -3,109 +3,109 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Интерактивті тақта</title>
-  <style>
-    body { font-family: Arial, sans-serif; margin: 0; padding: 10px; background: #f0f0f0; }
-    #panel { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-bottom: 8px; }
-    button { padding: 6px 12px; cursor: pointer; }
-    button.active { background: #4a90e2; color: white; }
-    #board { background: white; border: 1px solid #999; max-width: 100%; touch-action: none; cursor: crosshair; }
-  </style>
+  <title>Интерактивті тақта (Python)</title>
+  <script type="module" src="https://pyscript.net/releases/2024.11.1/core.js"></script>
 </head>
 <body>
 
-  <div id="panel">
-    <button id="penBtn" class="active">Қалам</button>
+  <h2>Интерактивті тақта</h2>
+
+  <div>
+    <button id="penBtn">Қалам</button>
     <button id="eraserBtn">Өшіргіш</button>
     <label>Түс: <input type="color" id="colorInput" value="#000000"></label>
     <label>Қалыңдық: <input type="range" id="sizeInput" min="1" max="30" value="3"></label>
-    <button id="undoBtn">Болдырмау</button>
     <button id="clearBtn">Тазалау</button>
-    <button id="saveBtn">Сақтау</button>
   </div>
+
+  <br>
 
   <canvas id="board" width="900" height="500"></canvas>
 
-  <script>
-    const canvas = document.getElementById("board");
-    const ctx = canvas.getContext("2d");
+  <script type="py">
+    from pyscript import document, when
 
-    let drawing = false;
-    let eraser = false;
-    let history = [];
+    BG = "#ffffee"
 
-    ctx.fillStyle = "white";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.lineCap = "round";
-    ctx.lineJoin = "round";
+    canvas = document.getElementById("board")
+    ctx = canvas.getContext("2d")
 
-    function getPos(e) {
-      const rect = canvas.getBoundingClientRect();
-      return {
-        x: (e.clientX - rect.left) * (canvas.width / rect.width),
-        y: (e.clientY - rect.top) * (canvas.height / rect.height)
-      };
-    }
+    drawing = False
+    eraser = False
 
-    function saveState() {
-      history.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
-      if (history.length > 30) history.shift();
-    }
+    ctx.lineCap = "round"
+    ctx.lineJoin = "round"
 
-    canvas.addEventListener("pointerdown", function (e) {
-      saveState();
-      drawing = true;
-      const p = getPos(e);
-      const size = Number(document.getElementById("sizeInput").value);
-      ctx.strokeStyle = eraser ? "white" : document.getElementById("colorInput").value;
-      ctx.lineWidth = eraser ? size * 3 : size;
-      ctx.beginPath();
-      ctx.moveTo(p.x, p.y);
-      ctx.lineTo(p.x + 0.01, p.y + 0.01);
-      ctx.stroke();
-    });
 
-    canvas.addEventListener("pointermove", function (e) {
-      if (!drawing) return;
-      const p = getPos(e);
-      ctx.lineTo(p.x, p.y);
-      ctx.stroke();
-    });
+    def clear_board():
+        ctx.fillStyle = BG
+        ctx.fillRect(0, 0, canvas.width, canvas.height)
 
-    window.addEventListener("pointerup", function () {
-      drawing = false;
-    });
 
-    document.getElementById("penBtn").onclick = function () {
-      eraser = false;
-      this.classList.add("active");
-      document.getElementById("eraserBtn").classList.remove("active");
-    };
+    def get_pos(event):
+        rect = canvas.getBoundingClientRect()
+        x = (event.clientX - rect.left) * canvas.width / rect.width
+        y = (event.clientY - rect.top) * canvas.height / rect.height
+        return x, y
 
-    document.getElementById("eraserBtn").onclick = function () {
-      eraser = true;
-      this.classList.add("active");
-      document.getElementById("penBtn").classList.remove("active");
-    };
 
-    document.getElementById("undoBtn").onclick = function () {
-      if (history.length > 0) {
-        ctx.putImageData(history.pop(), 0, 0);
-      }
-    };
+    clear_board()
 
-    document.getElementById("clearBtn").onclick = function () {
-      saveState();
-      ctx.fillStyle = "white";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-    };
 
-    document.getElementById("saveBtn").onclick = function () {
-      const link = document.createElement("a");
-      link.download = "takta.png";
-      link.href = canvas.toDataURL("image/png");
-      link.click();
-    };
+    @when("pointerdown", "#board")
+    def start_draw(event):
+        global drawing
+        drawing = True
+        x, y = get_pos(event)
+        size = int(document.getElementById("sizeInput").value)
+        if eraser:
+            ctx.strokeStyle = BG
+            ctx.lineWidth = size * 3
+        else:
+            ctx.strokeStyle = document.getElementById("colorInput").value
+            ctx.lineWidth = size
+        ctx.beginPath()
+        ctx.moveTo(x, y)
+        ctx.lineTo(x + 0.01, y + 0.01)
+        ctx.stroke()
+
+
+    @when("pointermove", "#board")
+    def draw(event):
+        if not drawing:
+            return
+        x, y = get_pos(event)
+        ctx.lineTo(x, y)
+        ctx.stroke()
+
+
+    @when("pointerup", "#board")
+    def stop_draw(event):
+        global drawing
+        drawing = False
+
+
+    @when("pointerleave", "#board")
+    def leave(event):
+        global drawing
+        drawing = False
+
+
+    @when("click", "#penBtn")
+    def use_pen(event):
+        global eraser
+        eraser = False
+
+
+    @when("click", "#eraserBtn")
+    def use_eraser(event):
+        global eraser
+        eraser = True
+
+
+    @when("click", "#clearBtn")
+    def clear_click(event):
+        clear_board()
   </script>
 
 </body>
