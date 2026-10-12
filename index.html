@@ -6,24 +6,9 @@
 <title>Тақта</title>
 <link rel="stylesheet" href="https://pyscript.net/releases/2024.11.1/core.css">
 <script type="module" src="https://pyscript.net/releases/2024.11.1/core.js"></script>
-<style>
-  body { font-family: sans-serif; margin: 20px; }
-  canvas { background: white; border: 1px solid #888; touch-action: none; max-width: 100%; display: block; }
-  .buttons { margin-top: 8px; }
-  button { padding: 6px 12px; margin-right: 4px; cursor: pointer; }
-</style>
 </head>
 <body>
-  <canvas id="canvas" width="800" height="500"></canvas>
-  <div class="buttons">
-    <button data-color="black">Қара</button>
-    <button data-color="red">Қызыл</button>
-    <button data-color="blue">Көк</button>
-    <button data-color="white">Өшіргіш</button>
-    <button id="clear">Тазалау</button>
-  </div>
-
-  <!-- Python коды браузерде осы жерден іске қосылады -->
-  <script type="py" src="./takta.py"></script>
+  <!-- takta.py өзгертілмей іске қосылады; tkinter.py оған браузерде жұмыс істейтін tkinter береді -->
+  <script type="py" src="./takta.py" config='{"files": {"./tkinter.py": "./tkinter.py"}}'></script>
 </body>
 </html>
