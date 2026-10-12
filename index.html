@@ -1,112 +1,29 @@
 <!DOCTYPE html>
+
 <html lang="kk">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Интерактивті тақта (Python)</title>
-  <script type="module" src="https://pyscript.net/releases/2024.11.1/core.js"></script>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Python жобам</title>
+
 </head>
+
 <body>
 
-  <h2>Интерактивті тақта</h2>
+    <h1>Менің Python жобам</h1>
 
-  <div>
-    <button id="penBtn">Қалам</button>
-    <button id="eraserBtn">Өшіргіш</button>
-    <label>Түс: <input type="color" id="colorInput" value="#000000"></label>
-    <label>Қалыңдық: <input type="range" id="sizeInput" min="1" max="30" value="3"></label>
-    <button id="clearBtn">Тазалау</button>
-  </div>
+    <p>Python кодын төмендегі сілтеме арқылы аш:</p>
 
-  <br>
+    <a href="takta.py" download>
 
-  <canvas id="board" width="900" height="500"></canvas>
+        Python кодын жүктеу
 
-  <script type="py">
-    from pyscript import document, when
-
-    BG = "#ffffee"
-
-    canvas = document.getElementById("board")
-    ctx = canvas.getContext("2d")
-
-    drawing = False
-    eraser = False
-
-    ctx.lineCap = "round"
-    ctx.lineJoin = "round"
-
-
-    def clear_board():
-        ctx.fillStyle = BG
-        ctx.fillRect(0, 0, canvas.width, canvas.height)
-
-
-    def get_pos(event):
-        rect = canvas.getBoundingClientRect()
-        x = (event.clientX - rect.left) * canvas.width / rect.width
-        y = (event.clientY - rect.top) * canvas.height / rect.height
-        return x, y
-
-
-    clear_board()
-
-
-    @when("pointerdown", "#board")
-    def start_draw(event):
-        global drawing
-        drawing = True
-        x, y = get_pos(event)
-        size = int(document.getElementById("sizeInput").value)
-        if eraser:
-            ctx.strokeStyle = BG
-            ctx.lineWidth = size * 3
-        else:
-            ctx.strokeStyle = document.getElementById("colorInput").value
-            ctx.lineWidth = size
-        ctx.beginPath()
-        ctx.moveTo(x, y)
-        ctx.lineTo(x + 0.01, y + 0.01)
-        ctx.stroke()
-
-
-    @when("pointermove", "#board")
-    def draw(event):
-        if not drawing:
-            return
-        x, y = get_pos(event)
-        ctx.lineTo(x, y)
-        ctx.stroke()
-
-
-    @when("pointerup", "#board")
-    def stop_draw(event):
-        global drawing
-        drawing = False
-
-
-    @when("pointerleave", "#board")
-    def leave(event):
-        global drawing
-        drawing = False
-
-
-    @when("click", "#penBtn")
-    def use_pen(event):
-        global eraser
-        eraser = False
-
-
-    @when("click", "#eraserBtn")
-    def use_eraser(event):
-        global eraser
-        eraser = True
-
-
-    @when("click", "#clearBtn")
-    def clear_click(event):
-        clear_board()
-  </script>
+    </a>
 
 </body>
+
 </html>
