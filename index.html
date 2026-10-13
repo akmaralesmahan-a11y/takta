@@ -1,118 +1,87 @@
-<style>
-    body {
-        font-family: Arial, sans-serif;
-        background: #f1f5f9;
-        text-align: center;
-        margin: 0;
-        padding: 20px;
-    }
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Тақта</title>
+  <style>
+    body { margin: 0; font-family: Segoe UI, sans-serif; background: #e9e9e4; }
+    h1 { font-size: 18px; margin: 0; padding: 10px 14px; background: #f3f3ef; }
+    canvas { background: #fff; display: block; width: 100%; touch-action: none; cursor: crosshair; }
+    .bar { display: flex; gap: 4px; padding: 6px; background: #f3f3ef; flex-wrap: wrap; }
+    button { padding: 8px 14px; border: 1px solid #bbb; background: #fafafa; cursor: pointer; font-size: 15px; }
+    button:hover { background: #e4e4e4; }
+    button.active { background: #cfe3ff; border-color: #5b9bf5; }
+  </style>
+</head>
+<body>
+  <h1>Тақта</h1>
+  <canvas id="board" width="1000" height="600"></canvas>
+  <div class="bar">
+    <button data-color="black" class="active">Қара</button>
+    <button data-color="red">Қызыл</button>
+    <button data-color="blue">Көк</button>
+    <button data-color="eraser">Өшіргіш</button>
+    <button id="clear">Тазалау</button>
+    <button id="save">Сақтау</button>
+  </div>
 
-    h1 {
-        color: #1e293b;
-    }
-
-    .buttons {
-        display: flex;
-        justify-content: center;
-        flex-wrap: wrap;
-        gap: 10px;
-        margin: 20px 0;
-    }
-
-    button {
-        padding: 12px 22px;
-        border: none;
-        border-radius: 8px;
-        color: white;
-        font-size: 16px;
-        cursor: pointer;
-    }
-
-    button:hover {
-        opacity: 0.8;
-    }
-
-    canvas {
-        display: block;
-        width: 100%;
-        max-width: 800px;
-        height: 500px;
-        margin: auto;
-        background: white;
-        border: 2px solid #334155;
-        border-radius: 8px;
-        touch-action: none;
-        cursor: crosshair;
-    }
-
-    .black { background: black; }
-    .red { background: red; }
-    .blue { background: blue; }
-    .eraser { background: #64748b; }
-    .clear { background: #dc2626; }
-</style>
-<div class="buttons">
-    <button class="black" onclick="setColor('black')">Қара</button>
-    <button class="red" onclick="setColor('red')">Қызыл</button>
-    <button class="blue" onclick="setColor('blue')">Көк</button>
-    <button class="eraser" onclick="setColor('white')">Өшіргіш</button>
-    <button class="clear" onclick="clearBoard()">Тазалау</button>
-</div>
-
-<canvas id="board" width="800" height="500"></canvas>
-
-<script>
+  <script>
     const canvas = document.getElementById("board");
     const ctx = canvas.getContext("2d");
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
 
-    let color = "black";
-    let drawing = false;
+    let color = "black", drawing = false;
 
-    function setColor(newColor) {
-        color = newColor;
+    function pos(e) {
+      const r = canvas.getBoundingClientRect();
+      return {
+        x: (e.clientX - r.left) * canvas.width / r.width,
+        y: (e.clientY - r.top) * canvas.height / r.height
+      };
     }
 
-    function position(event) {
-        const rect = canvas.getBoundingClientRect();
+    canvas.addEventListener("pointerdown", e => {
+      drawing = true;
+      const p = pos(e);
+      ctx.beginPath();
+      ctx.moveTo(p.x, p.y);
+    });
+    canvas.addEventListener("pointermove", e => {
+      if (!drawing) return;
+      const p = pos(e);
+      ctx.strokeStyle = color === "eraser" ? "#fff" : color;
+      ctx.lineWidth = color === "eraser" ? 25 : 4;
+      ctx.lineTo(p.x, p.y);
+      ctx.stroke();
+    });
+    window.addEventListener("pointerup", () => drawing = false);
 
-        return {
-            x: (event.clientX - rect.left) * canvas.width / rect.width,
-            y: (event.clientY - rect.top) * canvas.height / rect.height
-        };
-    }
-
-    canvas.addEventListener("pointerdown", function(event) {
-        drawing = true;
-        canvas.setPointerCapture(event.pointerId);
-
-        const p = position(event);
-
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
-        ctx.fillStyle = color;
-        ctx.fill();
+    document.querySelectorAll("[data-color]").forEach(btn => {
+      btn.onclick = () => {
+        color = btn.dataset.color;
+        document.querySelectorAll("[data-color]").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+      };
     });
 
-    canvas.addEventListener("pointermove", function(event) {
-        if (!drawing) return;
+    document.getElementById("clear").onclick = () => {
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    };
 
-        const p = position(event);
-
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
-        ctx.fillStyle = color;
-        ctx.fill();
-    });
-
-    canvas.addEventListener("pointerup", function() {
-        drawing = false;
-    });
-
-    canvas.addEventListener("pointercancel", function() {
-        drawing = false;
-    });
-
-    function clearBoard() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-    }
-</script>ы
+    document.getElementById("save").onclick = async () => {
+      const res = await fetch("/save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ image: canvas.toDataURL("image/png") })
+      });
+      const j = await res.json();
+      alert("Сақталды: saved/" + j.file);
+    };
+  </script>
+</body>
+</html>
