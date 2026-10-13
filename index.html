@@ -1,14 +1,118 @@
-<!DOCTYPE html>
-<html lang="kk">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Тақта</title>
-<link rel="stylesheet" href="https://pyscript.net/releases/2024.11.1/core.css">
-<script type="module" src="https://pyscript.net/releases/2024.11.1/core.js"></script>
-</head>
-<body>
-  <!-- takta.py өзгертілмей іске қосылады; tkinter.py оған браузерде жұмыс істейтін tkinter береді -->
-  <script type="py" src="./takta.py" config='{"files": {"./tkinter.py": "./tkinter.py"}}'></script>
-</body>
-</html>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background: #f1f5f9;
+        text-align: center;
+        margin: 0;
+        padding: 20px;
+    }
+
+    h1 {
+        color: #1e293b;
+    }
+
+    .buttons {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin: 20px 0;
+    }
+
+    button {
+        padding: 12px 22px;
+        border: none;
+        border-radius: 8px;
+        color: white;
+        font-size: 16px;
+        cursor: pointer;
+    }
+
+    button:hover {
+        opacity: 0.8;
+    }
+
+    canvas {
+        display: block;
+        width: 100%;
+        max-width: 800px;
+        height: 500px;
+        margin: auto;
+        background: white;
+        border: 2px solid #334155;
+        border-radius: 8px;
+        touch-action: none;
+        cursor: crosshair;
+    }
+
+    .black { background: black; }
+    .red { background: red; }
+    .blue { background: blue; }
+    .eraser { background: #64748b; }
+    .clear { background: #dc2626; }
+</style>
+<div class="buttons">
+    <button class="black" onclick="setColor('black')">Қара</button>
+    <button class="red" onclick="setColor('red')">Қызыл</button>
+    <button class="blue" onclick="setColor('blue')">Көк</button>
+    <button class="eraser" onclick="setColor('white')">Өшіргіш</button>
+    <button class="clear" onclick="clearBoard()">Тазалау</button>
+</div>
+
+<canvas id="board" width="800" height="500"></canvas>
+
+<script>
+    const canvas = document.getElementById("board");
+    const ctx = canvas.getContext("2d");
+
+    let color = "black";
+    let drawing = false;
+
+    function setColor(newColor) {
+        color = newColor;
+    }
+
+    function position(event) {
+        const rect = canvas.getBoundingClientRect();
+
+        return {
+            x: (event.clientX - rect.left) * canvas.width / rect.width,
+            y: (event.clientY - rect.top) * canvas.height / rect.height
+        };
+    }
+
+    canvas.addEventListener("pointerdown", function(event) {
+        drawing = true;
+        canvas.setPointerCapture(event.pointerId);
+
+        const p = position(event);
+
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
+        ctx.fillStyle = color;
+        ctx.fill();
+    });
+
+    canvas.addEventListener("pointermove", function(event) {
+        if (!drawing) return;
+
+        const p = position(event);
+
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
+        ctx.fillStyle = color;
+        ctx.fill();
+    });
+
+    canvas.addEventListener("pointerup", function() {
+        drawing = false;
+    });
+
+    canvas.addEventListener("pointercancel", function() {
+        drawing = false;
+    });
+
+    function clearBoard() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+</script>ы
